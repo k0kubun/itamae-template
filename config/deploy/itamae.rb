@@ -1,11 +1,34 @@
-task :apply do
-  on roles(:all) do
-    execute :echo, 'hello'
+# Capistrano uses /tmp/itamae-template temporarily.
+set :application, 'itamae-template'
+
+# Deploy this repository to /tmp/itamae-cache. Because `itamae local` is fater
+# than `itamae ssh`, this script deploys itamae recipes to the remote hosts.
+set :deploy_to, '/tmp/itamae-cache'
+
+# Deploy this repository using capistrano-rsync plugin.
+set :scm, :rsync
+set :repo_url, '.'
+set :rsync_options, %w[--recursive --delete --delete-excluded .git*]
+
+# Main tasks.
+task apply: %w[deploy itamae:bundle_install itamae:apply]
+task prepare: %w[prepare:ruby prepare:bundler]
+
+namespace :itamae do
+  task :bundle_install do
+    on roles(:all) do
+      execute('cd /tmp/itamae-cache/current && (~/.itamae/bin/bundle check || ~/.itamae/bin/bundle install --jobs `nproc`)')
+    end
+  end
+
+  task :apply do
+    on roles(:all) do |srv|
+      srv.roles.each do |role|
+        puts role
+      end
+    end
   end
 end
-before :apply, :deploy
-
-task prepare: 'prepare:bundler'
 
 namespace :prepare do
   task :ruby do
@@ -36,7 +59,7 @@ namespace :prepare do
     end
   end
 
-  task bundler: :ruby do
+  task :bundler do
     on roles(:all) do
       execute('test -e ~/.itamae/bin/bundle || ~/.itamae/bin/gem install bundler --no-ri --no-rdoc')
     end
