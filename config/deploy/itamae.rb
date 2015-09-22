@@ -1,23 +1,18 @@
-# Capistrano uses /tmp/itamae-template temporarily.
-set :application, 'itamae-template'
-
-# Deploy this repository to /tmp/itamae-cache. Because `itamae local` is fater
-# than `itamae ssh`, this script deploys itamae recipes to the remote hosts.
-set :deploy_to, '/tmp/itamae-cache'
-
-# Deploy this repository using capistrano-rsync plugin.
-set :scm, :rsync
-set :repo_url, '.'
-set :rsync_options, %w[--recursive --delete --delete-excluded .git*]
-
-# Main tasks.
-task apply: %w[deploy itamae:bundle_install itamae:apply]
+task apply: %w[rsync itamae:bundle_install itamae:apply]
 task prepare: %w[prepare:ruby prepare:bundler]
+
+task :rsync do
+  on roles(:all) do |srv|
+    run_locally do
+      execute "rsync -az --copy-links --copy-unsafe-links --delete --exclude=.git* . #{srv}:/tmp/itamae-cache"
+    end
+  end
+end
 
 namespace :itamae do
   task :bundle_install do
     on roles(:all) do
-      execute('cd /tmp/itamae-cache/current && (~/.itamae/bin/bundle check || ~/.itamae/bin/bundle install --jobs `nproc`)')
+      execute('cd /tmp/itamae-cache && (~/.itamae/bin/bundle check || ~/.itamae/bin/bundle install --jobs `nproc`)')
     end
   end
 
