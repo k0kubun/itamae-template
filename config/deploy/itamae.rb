@@ -19,7 +19,8 @@ namespace :itamae do
   task :apply do
     on roles(:all) do |srv|
       srv.roles.each do |role|
-        puts role
+        recipe_path = File.join('roles', role.to_s, 'default.rb')
+        execute("cd /tmp/itamae-cache && PATH=~/.itamae/bin:${PATH} ~/.itamae/bin/bundle exec itamae local recipe_helper.rb #{recipe_path} --no-color")
       end
     end
   end
