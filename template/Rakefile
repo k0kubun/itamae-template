@@ -6,3 +6,4 @@ roles.each do |role|
     system("ROLES=#{role} bundle exec cap itamae apply")
   end
 end
+task default: roles
