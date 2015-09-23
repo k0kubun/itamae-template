@@ -2,25 +2,35 @@ task 'apply'   => %w[rsync itamae:bundle_install itamae:apply]
 task 'dry-run' => %w[rsync itamae:bundle_install itamae:dry_run]
 task 'prepare' => %w[prepare:ruby prepare:bundler]
 
+# Ruby to execute itamae is installed to /opt/itamae.
 EMBEDDED_RUBY_DIR = '/opt/itamae'
-def bin_path(name)
-  File.join(EMBEDDED_RUBY_DIR, 'bin', name)
+def bin_path(*paths)
+  File.join(EMBEDDED_RUBY_DIR, 'bin', *paths)
+end
+
+# This repository is rsynced to /tmp/itamae-cache.
+def cache_path(*paths)
+  File.join('/tmp/itamae-cache', *paths)
 end
 
 task :rsync do
   on roles(:all) do |srv|
     run_locally do
-      execute "rsync -az --copy-links --copy-unsafe-links --delete --exclude=.git* --exclude=.bundle* . #{srv}:/tmp/itamae-cache"
+      execute(*%W[
+        rsync -az --copy-links --copy-unsafe-links --delete
+        --exclude=.git* --exclude=.bundle*
+        . #{srv}:#{cache_path}
+      ])
     end
   end
 end
 
 namespace :itamae do
   def run_itamae(role, dry_run: false)
-    recipe_path = File.join('/tmp/itamae-cache/roles', role.to_s, 'default.rb')
     sudo(*%W[
-      PATH=#{File.join(EMBEDDED_RUBY_DIR, 'bin')}:${PATH} BUNDLE_GEMFILE=/tmp/itamae-cache/Gemfile
-      #{bin_path('bundle')} exec itamae local /tmp/itamae-cache/recipe_helper.rb #{recipe_path}
+      PATH=#{bin_path}:${PATH} BUNDLE_GEMFILE=#{cache_path('Gemfile')}
+      #{bin_path('bundle')} exec itamae local
+      #{cache_path('recipe_helper.rb')} #{cache_path('roles', role.to_s, 'default.rb')}
       --no-color #{'--dry-run' if dry_run}
     ])
   end
@@ -28,7 +38,7 @@ namespace :itamae do
   task :bundle_install do
     on roles(:all) do
       sudo(*%W[
-        BUNDLE_GEMFILE=/tmp/itamae-cache/Gemfile
+        BUNDLE_GEMFILE=#{cache_path('Gemfile')}
         #{bin_path('bundle')} install --jobs `nproc` --without cap --quiet
       ])
     end
