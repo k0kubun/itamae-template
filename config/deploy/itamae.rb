@@ -18,7 +18,7 @@ namespace :itamae do
 
   task :bundle_install do
     on roles(:all) do
-      execute('cd /tmp/itamae-cache && (~/.itamae/bin/bundle check || ~/.itamae/bin/bundle install --jobs `nproc`)')
+      execute('cd /tmp/itamae-cache && (~/.itamae/bin/bundle check || ~/.itamae/bin/bundle install --jobs `nproc` --without cap)')
     end
   end
 
