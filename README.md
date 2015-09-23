@@ -93,6 +93,18 @@ $ vim config/deploy.rb
 $ ROLES=staging bundle exec cap itamae apply
 ```
 
+## Shorthand
+
+You can use :sushi: instead of `itamae-template`.
+
+```bash
+$ sushi init
+$ sushi g role [name]
+$ sushi g cookbook [name]
+$ sushi d role [name]
+$ sushi d cookbook [name]
+```
+
 ## License
 
 MIT License

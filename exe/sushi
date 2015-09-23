@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+# Just a shorthand for itamae-template.
+
+$:.unshift File.expand_path('../lib', __dir__)
+require 'itamae/template/cli'
+
+Itamae::Template::CLI.start(ARGV)
