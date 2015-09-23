@@ -1,5 +1,6 @@
-task apply: %w[rsync itamae:bundle_install itamae:apply]
-task prepare: %w[prepare:ruby prepare:bundler]
+task 'apply'   => %w[rsync itamae:bundle_install itamae:apply]
+task 'dry-run' => %w[rsync itamae:bundle_install itamae:dry_run]
+task 'prepare' => %w[prepare:ruby prepare:bundler]
 
 task :rsync do
   on roles(:all) do |srv|
@@ -10,17 +11,29 @@ task :rsync do
 end
 
 namespace :itamae do
+  def run_itamae(role, dry_run: false)
+    recipe_path = File.join('/tmp/itamae-cache/roles', role.to_s, 'default.rb')
+    sudo(*%W[PATH=~/.itamae/bin:${PATH} BUNDLE_GEMFILE=/tmp/itamae-cache/Gemfile ~/.itamae/bin/bundle exec itamae local /tmp/itamae-cache/recipe_helper.rb #{recipe_path} --no-color #{'--dry-run' if dry_run}])
+  end
+
   task :bundle_install do
     on roles(:all) do
       execute('cd /tmp/itamae-cache && (~/.itamae/bin/bundle check || ~/.itamae/bin/bundle install --jobs `nproc`)')
     end
   end
 
+  task :dry_run do
+    on roles(:all) do |srv|
+      srv.roles.each do |role|
+        run_itamae(role, dry_run: true)
+      end
+    end
+  end
+
   task :apply do
     on roles(:all) do |srv|
       srv.roles.each do |role|
-        recipe_path = File.join('roles', role.to_s, 'default.rb')
-        execute("cd /tmp/itamae-cache && PATH=~/.itamae/bin:${PATH} ~/.itamae/bin/bundle exec itamae local recipe_helper.rb #{recipe_path} --no-color")
+        run_itamae(role)
       end
     end
   end
