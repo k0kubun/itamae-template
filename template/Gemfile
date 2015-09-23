@@ -5,7 +5,8 @@ gem 'itamae', '>= 1.5'
 
 # This group is only used by client and not installed on remote host.
 group :local do
-  gem 'itamae-template'
   gem 'capistrano', '~> 3.4'
+  gem 'itamae-template'
+  gem 'rake'
   gem 'sshkit-sudo', '0.0.4'
 end
