@@ -41,7 +41,7 @@ namespace :itamae do
     on roles(:all) do
       sudo(*%W[
         BUNDLE_GEMFILE=#{cache_path('Gemfile')}
-        #{bin_path('bundle')} install --jobs `nproc` --without cap --quiet
+        #{bin_path('bundle')} install --jobs `nproc` --without local --quiet
       ])
     end
   end
