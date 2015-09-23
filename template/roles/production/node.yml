@@ -1,0 +1,4 @@
+# These variables are available as `node`
+hello:
+  - hello
+  - world

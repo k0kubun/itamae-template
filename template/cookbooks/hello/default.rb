@@ -1,1 +1,1 @@
-execute 'echo hello'
+execute "echo #{node[:hello].join(' ')}"

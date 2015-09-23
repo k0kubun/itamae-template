@@ -27,11 +27,13 @@ end
 
 namespace :itamae do
   def run_itamae(role, dry_run: false)
+    local_yaml = File.join(File.expand_path('../../roles', __dir__), role.to_s, 'node.yml')
     sudo(*%W[
       PATH=#{bin_path}:${PATH} BUNDLE_GEMFILE=#{cache_path('Gemfile')}
       #{bin_path('bundle')} exec itamae local
       #{cache_path('recipe_helper.rb')} #{cache_path('roles', role.to_s, 'default.rb')}
       --no-color #{'--dry-run' if dry_run}
+      #{"--node-yaml=#{cache_path('roles', role.to_s, 'node.yml')}" if File.exist?(local_yaml)}
     ])
   end
 
