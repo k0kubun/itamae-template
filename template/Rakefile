@@ -1,0 +1,8 @@
+roles = Dir.glob('./roles/*').map { |dir| File.basename(dir) }.sort
+
+roles.each do |role|
+  desc "ROLES=#{role} bundle exec cap itamae apply"
+  task role do
+    system("ROLES=#{role} bundle exec cap itamae apply")
+  end
+end
