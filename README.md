@@ -1,36 +1,98 @@
 # Itamae::Template
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/itamae/template`. To experiment with that code, run `bin/console` for an interactive prompt.
+Itamae template generator for roles and cookbooks, based on the
+[Best Practice](https://github.com/itamae-kitchen/itamae/wiki/Best-Practice)
+of [Itamae](https://github.com/itamae-kitchen/itamae/).
 
-TODO: Delete this and the text above, and describe your gem
+## Features
+
+| command | description |
+|:-----|:--------|
+| `itamae-template init`  | Initialize repository to use cookbooks and roles |
+| `itamae-template g role [name]` | Generate roles/[name]/default.rb |
+| `itamae-template g cookbook [name]` | Generate cookbooks/[name]/default.rb |
+| `itamae-template d role [name]` | Destroy roles/[name]/default.rb |
+| `itamae-template d cookbook [name]` | Destroy cookbooks/[name]/default.rb |
+
+And you can include those recipes by `include_cookbook` or `include_role`.
+
+### Capistrano tasks
+
+The initialized repository includes following capistrano tasks.
+
+NOTE: Because `itamae ssh` is slow, itamae-template installs itamae remotely and
+execute recipes via `itamae local`.
+
+| command | description |
+|:-----|:--------|
+| `cap itamae prepare` | Install ruby to execute itamae remotely |
+| `cap itamae dry-run` | Check what will be executed |
+| `cap itamae apply` | Apply recipes |
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'itamae-template'
+```bash
+$ gem install itamae-template
 ```
 
-And then execute:
+## Get started
 
-    $ bundle
+This is a tutorial of `itamae-template`.
 
-Or install it yourself as:
+```bash
+# Create repository to add itamae recipes.
+$ mkdir infra
+$ cd infra
+$ git init
 
-    $ gem install itamae-template
+# Initialize itamae helpers.
+$ gem install itamae-template
+$ itamae-template init
 
-## Usage
+# Specify hosts to provision. If you can ssh to the host by `ssh foo`,
+# edit: `role :production, %w[foo]`
+$ vim config/deploy.rb
 
-TODO: Write usage instructions here
+# Install ruby and bundler to the production role, i.e. "foo" host.
+# It will be installed to /opt/itamae/bin/ruby, not system-widely.
+$ bundle install
+$ bundle exec cap itamae prepare
 
-## Development
+# Test execution of the recipes.
+$ bundle exec cap itamae dry-run
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake false` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+# Apply recipes. It just prints hello.
+$ bundle exec cap itamae apply
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### Cookbook
 
-## Contributing
+```bash
+# Drop hello cookbook.
+$ itamae-template d cookbook hello
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/itamae-template.
+# Create new cookbook. "default.rb" will be loaded by
+# `include_cookbook "nginx"`
+$ itamae-template g cookbook nginx
+$ vim cookbooks/nginx/default.rb
+$ vim roles/production/default.rb
+```
 
+### Role
+
+```bash
+# Create new role.
+$ itamae-template g role staging
+$ vim roles/staging/default.rb
+
+# Specify hosts to apply staging recipes.
+# Edit: `role :staging, %w[bar]`
+$ vim config/deploy.rb
+
+# Apply recipes only for staging by the capistrano way.
+$ ROLES=staging bundle exec cap itamae apply
+```
+
+## License
+
+MIT License
