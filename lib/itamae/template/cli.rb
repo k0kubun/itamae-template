@@ -27,7 +27,9 @@ module Itamae
 
         create_directory(File.join("#{target}s", name))
         create_file(File.join("#{target}s", name, 'default.rb'), "# noop\n")
-        create_file(File.join("#{target}s", name, 'node.yml'), "# No variables\n")
+        if target == 'role'
+          create_file(File.join("#{target}s", name, 'node.yml'), "# No variables\n")
+        end
       end
       method_option :generate, aliases: :g
 
@@ -37,7 +39,9 @@ module Itamae
 
         recursive_remove(File.join("#{target}s", name))
         recursive_remove(File.join("#{target}s", name, 'default.rb'))
-        recursive_remove(File.join("#{target}s", name, 'node.yml'))
+        if target == 'role'
+          recursive_remove(File.join("#{target}s", name, 'node.yml'))
+        end
       end
       method_option :destroy, aliases: :d
 
